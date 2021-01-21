@@ -10,7 +10,7 @@ app.config['SQLALCHEMY_ECHO'] = True
 
 connect_db(app)
 
-def serialize_cupcake(cupcake):
+def serialize_cupcake(cupcakes):
     """Serialize a cupcake SQLAlchemy obj to dictionary."""
 
     return {
@@ -57,3 +57,22 @@ def create_cupcake():
     serialized = serialize_cupcake(new_cupcake)
 
     return (jsonify(cupcake=serialized), 201)
+
+@app.route("/api/cupcakes/<int:cupcake_id>", methods=["PATCH"])
+def update_cupcake(id):
+    """Updates a particular cupcake and response with JSON to update that cupcake"""
+    cupcake = Cupcake.query.get_or_404(id)
+    cupcake.flavor = request.json.get("flavor", cupcake.flavor)
+    cupcake.size = request.json.get("size", cupcake.size)
+    cupcake.rating = request.json.get("rating", cupcake.rating)
+    cupcake.image = request.json.get("image", cupcake.image)
+    db.session.commit()
+    return jsonify(cupcake=cupcake.serialize_cupcake())
+
+@app.route("/api/cupcakes/<int:cupcake_id>", methods = ["DELETE"])
+def delete_cupcake(id):
+    """ Deletes a particular cupcake"""
+    cupcake = Cupcake.query.get_or_404(id)
+    db.session.delete(cupcake)
+    db.session.commit()
+    return jsonify(message="Deleted")
